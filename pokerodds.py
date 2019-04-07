@@ -9,15 +9,16 @@ import copy
 
 def rank_hand(hand):
 	sortedcards = sorted(hand,key=lambda x:(x.value,x.suit),reverse=True)
-	constants={
-	"sflush":8**13,
-	"straight":4**13,
-	"flush":5**13,
-	"quads":7**13,
-	"full":6**13,
-	"three":4**13,
-	"twopair":3**13,
-	"pair":2**13,
+	handranks={
+	1:"Straight Flush",
+	2:"Quads",
+	3:"Full House",
+	4:"Flush",
+	5:"Straight",
+	6:"Triples",
+	7:"Two Pair",
+	8:"One Pair",
+	9:"High Card"
 	}
 	#print sortedcards
 	smap= dict()
@@ -58,93 +59,53 @@ def rank_hand(hand):
 				values = [cardy.value]
 			#print cardx,cardy
 		return -1
-
-	def quads():
-		maxkey = -1
-		for k,v in rmap.iteritems():
-			if k>maxkey and v==4 :maxkey =k
-		if maxkey ==-1:return -1
+	
+	def count_cards():
+		temp = copy.deepcopy(heap)
+		res=[]
+		if temp[0][0]==-4:
+			res+= [heapq.heappop(temp)[1]*-1]*4
+			res+= [heapq.heappop(temp)[1]*-1]
+			return (res,2)
+		elif temp[0][0]==-3:
+			res+= [heapq.heappop(temp)[1]*-1]*3
+			if temp[0][0]==-2:
+				res+= [heapq.heappop(temp)[1]*-1]*2
+				return (res,3) 
+			else:
+				res+= [heapq.heappop(temp)[1]*-1]
+				res+= [heapq.heappop(temp)[1]*-1]
+				return (res,6)
+		elif temp[0][0]==-2:
+			res+= [heapq.heappop(temp)[1]*-1]*2
+			if temp[0][0]==-2:
+				res+= [heapq.heappop(temp)[1]*-1]*2
+				res+= [heapq.heappop(temp)[1]*-1]
+				return (res,7)
+			else:
+				res+= [heapq.heappop(temp)[1]*-1]
+				res+= [heapq.heappop(temp)[1]*-1]
+				res+= [heapq.heappop(temp)[1]*-1]
+				return (res,8)
 		else:
-			res= 4* [maxkey]
-			print res,maxkey
-			m = 0 
-			for x,v in rmap.iteritems():
-				if x!=maxkey:
-					m= max(m,x)
+			for i in range(5):
+				res+=[sortedcards[i].value]
+			return (res,9)
 
-			return (res+[m],2)
-
-	def full():
-		temp = copy.deepcopy(heap)
-		res=[]
-		#print "----> ",heap
-		if temp[0][0]!=-3:return -1
-		res+= [heapq.heappop(temp)[1]*-1]*3
-		if temp[0][0]>-2:return -1
-		res+= [heapq.heappop(temp)[1]*-1]*2
-		return (res,3)
-
-	def three():
-		temp = copy.deepcopy(heap)
-		res=[]
-		if temp[0][0]!=-3:return -1
-		res+= [heapq.heappop(temp)[1]*-1]*3
-		left = 2
-		while left:
-			node = heapq.heappop(temp)
-			res+= [node[1]*-1]
-			left+= node[0]
-		return (res,6)
-
-	def two_pair():
-		temp = copy.deepcopy(heap)
-		res=[]
-		if temp[0][0]!=-2:return 0
-		res+= [heapq.heappop(temp)[1]*-1]*2
-		if temp[0][0]>-2:return 0
-		res+= [heapq.heappop(temp)[1]*-1]*2
-		res+= [heapq.heappop(temp)[1]*-1]
-		return (res,7)
-
-	def one_pair():
-
-		temp = copy.deepcopy(heap)
-		print temp
-		res=[]
-		if temp[0][0]!=-2:return 0
-		res+= [heapq.heappop(temp)[1]*-1]*2
-		left= 3
-		while left:
-			node = heapq.heappop(temp)
-			res+= [node[1]*-1]
-			left+= node[0]
-		return (res,8)
-
-	def high_card():
-		res =[] 
-		for i in range(5):
-			res+=[sortedcards[i].value]
-		return (res,9)
-	
-	
 	ans = straight_flush("sflush")
 	if ans>0:print "Straight flush" ;return ans
-	ans = quads()
-	if ans>0:print "Quads" ;return ans
-	ans = full()
-	if ans>0:print "Full House" ;return ans
-	ans = straight_flush("flush")
-	if ans>0:print "Flush" ;return ans
-	ans = straight_flush("straight")
-	if ans>0:print "Straight" ;return ans
-	ans = three()
-	if ans>0:print "Triples" ;return ans
-	ans = two_pair()
-	if ans>0:print "Two Pair" ;return ans
-	ans = one_pair()
-	if ans>0:print "One Pair" ;return ans
-	print "High card"
-	return high_card()
+	
+	res = count_cards()
+	if res[1]>3:
+		ans = straight_flush("flush")
+		if ans>0:print "Flush" ;return ans
+		ans = straight_flush("straight")
+		if ans>0:print "Straight" ;return ans
+	
+
+	print  handranks[res[1]];return res
+	
+	
 	
 class Card:
 	def __init__(self,rank,suit,value):
